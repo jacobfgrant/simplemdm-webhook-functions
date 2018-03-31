@@ -38,7 +38,13 @@ s3 = boto3.client('s3', region_name='us-east-1')
 
 # Functions
 
-def generate_manifest_file(catalogs=['production'], included_manifests=['site_default']):
+def get_device_info(device_id, api_key):
+    """Get device info from SimpleMDM API"""
+    device_info = requests.get(('https://a.simplemdm.com/api/v1/devices/' + device_id), auth = (api_key, ''))
+    return device_info.json()['data']
+
+
+def generate_manifest_file(name, catalogs=['production'], included_manifests=['site_default']):
     """Generate a manifest file"""
     manifest_info = {
                 "catalogs": catalogs,
@@ -50,7 +56,9 @@ def generate_manifest_file(catalogs=['production'], included_manifests=['site_de
                 "optional_installs":[],
                 "user":""
                 }
-    plistlib.writePlist(manifest_info, '/tmp/manifest.plist')
+    manifest_file = os.path.join('/tmp/', name)
+    plistlib.writePlist(manifest_info, manifest_file)
+    return manifest_file
 
 
 def create_manifest(name, folder, bucket):
@@ -62,8 +70,7 @@ def create_manifest(name, folder, bucket):
     except ClientError as e:
         if e.response['Error']['Code'] != '404':
             return None
-    manifest_file = generate_manifest_file()
-    s3.upload_file('/tmp/manifest.plist', bucket, os.path.join(folder, name))
+    s3.upload_file(generate_manifest_file(name), bucket, os.path.join(folder, name))
 
 
 def delete_manifest(name, folder, bucket):
