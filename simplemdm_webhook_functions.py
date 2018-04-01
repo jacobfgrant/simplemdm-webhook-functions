@@ -61,52 +61,124 @@ def generate_manifest_file(name, catalogs=['production'], included_manifests=['s
     return manifest_file
 
 
-def create_manifest(name, folder, bucket):
+def create_manifest(name, folder, bucket, function_log):
     """Create a munki manifest file and upload it to folder in S3"""
+    action_log = {
+                "action": "create_manifest",
+                "info": {
+                         "name": os.path.join(folder, name),
+                         "bucket": bucket
+                         },
+                "result": None
+                }
+
     # check if manifest exists
     try:
         s3.head_object(Bucket=bucket, Key=os.path.join(folder, name))
-        return True
+        action_log['result'] = 'AlreadyExists'
     except ClientError as e:
-        if e.response['Error']['Code'] != '404':
-            return None
-    s3.upload_file(generate_manifest_file(name), bucket, os.path.join(folder, name))
+        if e.response['Error']['Code'] == '404':
+            s3.upload_file(generate_manifest_file(name), bucket, os.path.join(folder, name))
+            action_log['result'] = 'Success'
+        else:
+            action_log['result'] = e
+
+    return log_action(function_log, action_log)
 
 
-def delete_manifest(name, folder, bucket):
+def delete_manifest(name, folder, bucket, function_log):
     """Delete a munki manifest file from S3"""
-    s3.delete_object(Bucket=bucket, Key=os.path.join(folder, name))
+    action_log = {
+                "action": "delete_manifest",
+                "info": {
+                         "name": os.path.join(folder, name),
+                         "bucket": bucket
+                         },
+                "result": None
+                }
+
+    try:
+        s3.delete_object(Bucket=bucket, Key=os.path.join(folder, name))
+        action_log['result'] = "Success"
+    except ClientError as e:
+        action_log['result'] = e.response['Error']['Code']
+    
+    return log_action(function_log, action_log)
 
 
-def assign_device_group(device_id, group_name, API_KEY):
+def assign_device_group(device_id, group_name, api_key, function_log):
     """Assigns a device to a SimpleMDM device group"""
-    # assign device to group using logic below
-    api_call = requests.get('https://a.simplemdm.com/api/v1/device_groups', auth = (API_KEY, ''))
-    if api_call.statuscode == 200:
+    action_log = {
+                "action": "assign_device_group",
+                "info": {
+                         "device_id": device_id,
+                         "new_group_name": group_name
+                         },
+                "result": None
+                }
+
+    api_call = requests.get('https://a.simplemdm.com/api/v1/device_groups', auth = (api_key, ''))
+    if api_call.status_code == 200:
         data = api_call.json()['data']
+
         for group in data:
             if group['attributes']['name'] == group_name:
                 group_id = group['id']
                 api_url = ('https://a.simplemdm.com/api/v1/device_groups/' + group_id + '/devices/' + device_id)
-                assign_device_call = requests.post(api_url, auth = (API_KEY, ''))
+                assign_device_call = requests.post(api_url, auth = (api_key, ''))
+                
                 if assign_device_call.status_code == 204:
-                    print("Success")
+                    action_log['result'] = "Success"
+                    return log_action(function_log, action_log)
+                else:
+                    action_log['result'] = {
+                                            "result": "failed_api_call",
+                                            "action": "assign_device",
+                                            'code': api_call.status_code
+                                            }
+        action_log['result'] = "GroupNotFound"
+    else:
+        action_log['result'] = {
+                                "result": "failed_api_call",
+                                "action": "get_device_groups",
+                                'code': api_call.status_code
+                                }
+
+    return log_action(function_log, action_log)
+
+
+def log_action(function_log, action_log):
+    """Updates a function log with an action's item log"""
+    return function_log["eventLog"].append(action_log)
+
+
+def function_api_response(response_code, function_log):
+    """Return formatted API response"""
+    response = {
+                "isBase64Encoded": False,
+                "statusCode": response_code,
+                "headers": { "Content-Type": "application/json"},
+                "body": function_log
+                }
+    return response
 
 
 
 # Webhook Event Functions
 
-def device_enrolled(data):
+def device_enrolled(data, function_log):
     """Device enrolled from SimpleMDM"""
     create_manifest(data['device']['serial_number'],
                     MANIFEST_FOLDER,
-                    MUNKI_REPO_BUCKET_NAME
+                    MUNKI_REPO_BUCKET_NAME,
+                    function_log
                     )
+    return function_log
 
 
-def device_unenrolled(data):
+def device_unenrolled(data, function_log):
     """Device unenrolled from SimpleMDM"""
-    return
+    return function_log
 
 
 
@@ -115,17 +187,28 @@ def device_unenrolled(data):
 def lambda_handler(event, context):
     """Handler function for AWS Lambda"""
     event_body = json.loads(event['body'])
-
+    try:
+        function_log = {
+                        "requestInfo": {
+                                        "type": event_body['type'],
+                                        "time": event_body['at'],
+                                        "data": event_body['data']
+                                        },
+                        "eventLog": []
+                        }
+    except KeyError as e:
+        function_log = log_action(function_log, ('ERROR: ' + e + ' not recieved in request'))
+        return function_api_response(400, function_log)
+    
     # "device.enrolled" webhook
     if event_body['type'] == 'device.enrolled':
-        device_enrolled(event_body['data'])
+        function_log = device_enrolled(event_body['data'], function_log)
 
     # "device.unenrolled" webhook
     if event_body['type'] == 'device.unenrolled':
-        device_unenrolled(event_body['data'])
+        function_log = device_unenrolled(event_body['data'], function_log)
 
-    return True
-
+    return function_api_response(200, function_log)
 
 
 
@@ -133,8 +216,6 @@ def lambda_handler(event, context):
 
 def main():
     pass
-    
-
 
 
 if __name__ == "__main__":
