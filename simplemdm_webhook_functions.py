@@ -68,18 +68,18 @@ def get_device_info(device_id, api_key, function_log):
 def generate_manifest_file(name, catalogs=['production'], included_manifests=['site_default']):
     """Generate a manifest file"""
     manifest_info = {
-                "catalogs": catalogs,
-                "display_name":"",
-                "included_manifests": included_manifests,
-                "managed_installs":[],
-                "managed_uninstalls":[],
-                "managed_updates":[],
-                "optional_installs":[],
-                "user":""
-                }
+                     "catalogs": catalogs,
+                     "display_name":"",
+                     "included_manifests": included_manifests,
+                     "managed_installs":[],
+                     "managed_uninstalls":[],
+                     "managed_updates":[],
+                     "optional_installs":[],
+                     "user":""
+                     }
     manifest_file = os.path.join('/tmp/', name)
     plistlib.writePlist(manifest_info, manifest_file)
-    return manifest_file
+    return manifest_file, manifest_info
 
 
 def create_manifest(name, folder, bucket, function_log):
@@ -88,7 +88,8 @@ def create_manifest(name, folder, bucket, function_log):
                 "action": "create_manifest",
                 "info": {
                          "name": os.path.join(folder, name),
-                         "bucket": bucket
+                         "bucket": bucket,
+                         "content": None
                          },
                 "result": None
                 }
@@ -99,8 +100,12 @@ def create_manifest(name, folder, bucket, function_log):
         action_log['result'] = 'AlreadyExists'
     except ClientError as e:
         if e.response['Error']['Code'] == '404':
-            s3.upload_file(generate_manifest_file(name), bucket, os.path.join(folder, name))
-            action_log['result'] = 'Success'
+            manifest_file, action_log['info']['content'] = generate_manifest_file(name)
+            try:
+                s3.upload_file(manifest_file, bucket, os.path.join(folder, name))
+                action_log['result'] = 'Success'
+            except ClientError as e:
+                action_log['result'] = e
         else:
             action_log['result'] = e
 
