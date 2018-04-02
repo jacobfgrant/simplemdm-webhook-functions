@@ -41,9 +41,27 @@ s3 = boto3.client('s3', region_name='us-east-1')
 
 # Functions
 
-def get_device_info(device_id, api_key):
+def get_device_info(device_id, api_key, function_log):
     """Get device info from SimpleMDM API"""
+    action_log = {
+                "action": "get_device_info",
+                "info": {
+                         "device_id": device_id
+                         },
+                "result": None
+                }
+
     device_info = requests.get(('https://a.simplemdm.com/api/v1/devices/' + device_id), auth = (api_key, ''))
+    if device_info.status_code != 200:
+        action_log['result'] = {
+                                "result": "failed_api_call",
+                                "action": "get_device_info",
+                                'code': device_info.status_code
+                                }
+    else:
+        action_log['result'] = "Success"
+    
+    log_action(function_log, action_log)
     return device_info.json()['data']
 
 
