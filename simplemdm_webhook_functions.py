@@ -152,7 +152,7 @@ def log_action(function_log, action_log):
     return function_log["eventLog"].append(action_log)
 
 
-def function_api_response(response_code, function_log):
+def generate_api_response(response_code, function_log):
     """Return formatted API response"""
     response = {
                 "isBase64Encoded": False,
@@ -186,19 +186,33 @@ def device_unenrolled(data, function_log):
 
 def lambda_handler(event, context):
     """Handler function for AWS Lambda"""
-    event_body = json.loads(event['body'])
+    # create log
+    function_log = {
+                    "requestInfo": {
+                                    "type": None,
+                                    "at": None,
+                                    "data": None
+                                    },
+                    "eventLog": []
+                    }
+    
+    # check if body included in request
     try:
-        function_log = {
-                        "requestInfo": {
-                                        "type": event_body['type'],
-                                        "time": event_body['at'],
-                                        "data": event_body['data']
-                                        },
-                        "eventLog": []
-                        }
+        event_body = json.loads(event['body'])
     except KeyError as e:
-        function_log = log_action(function_log, ('ERROR: ' + e + ' not recieved in request'))
-        return function_api_response(400, function_log)
+        function_log = log_action(function_log, ('ERROR: ' + str(e) + ' not included in request'))
+        return generate_api_response(400, function_log)
+    
+    # check if request body is incomplete
+    incomplete_request = False
+    for key in ['type', 'at', 'data']:
+        try:
+            function_log = {key: event_body[key]}
+        except KeyError as e:
+            function_log = log_action(function_log, ('ERROR: ' + str(e) + ' not included in request'))
+            incomplete_request = True
+    if incomplete_request:
+        return generate_api_response(400, function_log)
     
     # "device.enrolled" webhook
     if event_body['type'] == 'device.enrolled':
@@ -208,7 +222,7 @@ def lambda_handler(event, context):
     if event_body['type'] == 'device.unenrolled':
         function_log = device_unenrolled(event_body['data'], function_log)
 
-    return function_api_response(200, function_log)
+    return generate_api_response(200, function_log)
 
 
 
