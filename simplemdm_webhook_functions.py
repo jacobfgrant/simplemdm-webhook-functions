@@ -86,7 +86,7 @@ def create_manifest(name, folder, bucket, function_log):
         else:
             action_log['result'] = e
 
-    return log_action(function_log, action_log)
+    log_action(function_log, action_log)
 
 
 def delete_manifest(name, folder, bucket, function_log):
@@ -106,7 +106,7 @@ def delete_manifest(name, folder, bucket, function_log):
     except ClientError as e:
         action_log['result'] = e.response['Error']['Code']
     
-    return log_action(function_log, action_log)
+    log_action(function_log, action_log)
 
 
 def assign_device_group(device_id, group_name, api_key, function_log):
@@ -132,7 +132,7 @@ def assign_device_group(device_id, group_name, api_key, function_log):
                 
                 if assign_device_call.status_code == 204:
                     action_log['result'] = "Success"
-                    return log_action(function_log, action_log)
+                    log_action(function_log, action_log)
                 else:
                     action_log['result'] = {
                                             "result": "failed_api_call",
@@ -147,12 +147,11 @@ def assign_device_group(device_id, group_name, api_key, function_log):
                                 'code': api_call.status_code
                                 }
 
-    return log_action(function_log, action_log)
+    log_action(function_log, action_log)
 
 
 def log_action(function_log, action_log):
     """Updates a function log with an action's item log"""
-    #return function_log["eventLog"].append(action_log)
     function_log["eventLog"].append(action_log)
 
 
