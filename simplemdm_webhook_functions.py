@@ -4,7 +4,10 @@
 import os
 import json
 import plistlib
-import requests
+try:
+    import requests
+except ModuleNotFoundError:
+    from botocore.vendored import requests
 import boto3
 from botocore.exceptions import ClientError
 
@@ -149,7 +152,8 @@ def assign_device_group(device_id, group_name, api_key, function_log):
 
 def log_action(function_log, action_log):
     """Updates a function log with an action's item log"""
-    return function_log["eventLog"].append(action_log)
+    #return function_log["eventLog"].append(action_log)
+    function_log["eventLog"].append(action_log)
 
 
 def generate_api_response(response_code, function_log):
@@ -158,7 +162,7 @@ def generate_api_response(response_code, function_log):
                 "isBase64Encoded": False,
                 "statusCode": response_code,
                 "headers": { "Content-Type": "application/json"},
-                "body": function_log
+                "body": json.dumps(function_log)
                 }
     return response
 
@@ -200,27 +204,27 @@ def lambda_handler(event, context):
     try:
         event_body = json.loads(event['body'])
     except KeyError as e:
-        function_log = log_action(function_log, ('ERROR: ' + str(e) + ' not included in request'))
+        log_action(function_log, ('ERROR: ' + str(e) + ' not included in request'))
         return generate_api_response(400, function_log)
     
     # check if request body is incomplete
     incomplete_request = False
     for key in ['type', 'at', 'data']:
         try:
-            function_log = {key: event_body[key]}
+            function_log['requestInfo'][key] = event_body[key]
         except KeyError as e:
-            function_log = log_action(function_log, ('ERROR: ' + str(e) + ' not included in request'))
+            log_action(function_log, ('ERROR: ' + str(e) + ' not included in request'))
             incomplete_request = True
     if incomplete_request:
         return generate_api_response(400, function_log)
     
     # "device.enrolled" webhook
-    if event_body['type'] == 'device.enrolled':
-        function_log = device_enrolled(event_body['data'], function_log)
+    if function_log['requestInfo']['type'] == 'device.enrolled':
+        device_enrolled(event_body['data'], function_log)
 
     # "device.unenrolled" webhook
-    if event_body['type'] == 'device.unenrolled':
-        function_log = device_unenrolled(event_body['data'], function_log)
+    if function_log['requestInfo']['type'] == 'device.unenrolled':
+        device_unenrolled(event_body['data'], function_log)
 
     return generate_api_response(200, function_log)
 
