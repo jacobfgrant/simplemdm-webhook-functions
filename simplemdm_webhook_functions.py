@@ -16,19 +16,19 @@ from botocore.exceptions import ClientError
 # Set environmental variables
 
 API_KEY = None
-MUNKI_REPO_BUCKET_NAME = None
-MUNKI_REPO_BUCKET_NAME = None
-MUNKI_REPO_BUCKET_REGION = None
 MANIFEST_FOLDER = 'manifests'
+MUNKI_REPO_BUCKET = None
 
-try:
-    MUNKI_REPO_BUCKET = os.environ['MUNKI_REPO_BUCKET']
-    MUNKI_REPO_BUCKET_NAME = os.environ['MUNKI_REPO_BUCKET_NAME']
-    MUNKI_REPO_BUCKET_REGION = os.environ['MUNKI_REPO_BUCKET_REGION']
-    MANIFEST_FOLDER = os.environ['MANIFEST_FOLDER']
-except KeyError as e:
-    print("Warning: Environmental variable(s) not defined")
-
+for var in [
+            API_KEY,
+            MANIFEST_FOLDER,
+            MUNKI_REPO_BUCKET
+            ]:
+    try:
+        var = os.environ[str(var)]
+    except KeyError as e:
+        print("Warning: Environmental variable " + str(e) + " not defined.\n\t Using default value: " + str(var))
+        
 MANIFEST_FOLDER = MANIFEST_FOLDER.strip('/')
 
 
@@ -174,7 +174,7 @@ def device_enrolled(data, function_log):
     """Device enrolled from SimpleMDM"""
     create_manifest(data['device']['serial_number'],
                     MANIFEST_FOLDER,
-                    MUNKI_REPO_BUCKET_NAME,
+                    MUNKI_REPO_BUCKET,
                     function_log
                     )
     return function_log
