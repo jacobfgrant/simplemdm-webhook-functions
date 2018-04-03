@@ -27,7 +27,9 @@ for var in [
     try:
         var = os.environ[str(var)]
     except KeyError as e:
-        print("Warning: Environmental variable " + str(e) + " not defined.\n\t Using default value: " + str(var))
+        print("Warning: Environmental variable " + str(e) +
+              " not defined.\n\t Using default value: " + str(var)
+              )
         
 MANIFEST_FOLDER = MANIFEST_FOLDER.strip('/')
 
@@ -46,8 +48,8 @@ def get_device_info(device_id, api_key, function_log):
     action_log = {
                   "action": "get_device_info",
                   "info": {
-                         "device_id": device_id
-                         },
+                           "device_id": device_id
+                           },
                   "result": None
                   }
 
@@ -85,14 +87,14 @@ def generate_manifest_file(name, catalogs=['production'], included_manifests=['s
 def create_manifest(name, folder, bucket, function_log):
     """Create a munki manifest file and upload it to folder in S3"""
     action_log = {
-                "action": "create_manifest",
-                "info": {
-                         "name": os.path.join(folder, name),
-                         "bucket": bucket,
-                         "content": None
-                         },
-                "result": None
-                }
+                  "action": "create_manifest",
+                  "info": {
+                           "name": os.path.join(folder, name),
+                           "bucket": bucket,
+                           "content": None
+                           },
+                  "result": None
+                  }
 
     # check if manifest exists
     try:
@@ -115,13 +117,13 @@ def create_manifest(name, folder, bucket, function_log):
 def delete_manifest(name, folder, bucket, function_log):
     """Delete a munki manifest file from S3"""
     action_log = {
-                "action": "delete_manifest",
-                "info": {
-                         "name": os.path.join(folder, name),
-                         "bucket": bucket
-                         },
-                "result": None
-                }
+                  "action": "delete_manifest",
+                  "info": {
+                           "name": os.path.join(folder, name),
+                           "bucket": bucket
+                           },
+                  "result": None
+                  }
 
     try:
         s3.delete_object(Bucket=bucket, Key=os.path.join(folder, name))
@@ -135,13 +137,13 @@ def delete_manifest(name, folder, bucket, function_log):
 def assign_device_group(device_id, group_name, api_key, function_log):
     """Assigns a device to a SimpleMDM device group"""
     action_log = {
-                "action": "assign_device_group",
-                "info": {
-                         "device_id": device_id,
-                         "new_group_name": group_name
-                         },
-                "result": None
-                }
+                  "action": "assign_device_group",
+                  "info": {
+                           "device_id": device_id,
+                           "new_group_name": group_name
+                           },
+                  "result": None
+                  }
 
     api_call = requests.get('https://a.simplemdm.com/api/v1/device_groups', auth = (api_key, ''))
     if api_call.status_code == 200:
