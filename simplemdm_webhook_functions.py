@@ -27,9 +27,8 @@ for var in [
     try:
         var = os.environ[str(var)]
     except KeyError as e:
-        print("Warning: Environmental variable " + str(e) +
-              " not defined.\n\t Using default value: " + str(var)
-              )
+        print("Warning: Environmental variable " + str(e) + " not defined.")
+        print("\t Using default value: " + str(var))
         
 MANIFEST_FOLDER = MANIFEST_FOLDER.strip('/')
 
@@ -140,7 +139,7 @@ def assign_device_group(device_id, group_name, api_key, function_log):
                   "action": "assign_device_group",
                   "info": {
                            "device_id": device_id,
-                           "new_group_name": group_name
+                           "assign_group": group_name
                            },
                   "result": None
                   }
@@ -195,12 +194,33 @@ def generate_api_response(response_code, function_log):
 # Webhook Event Functions
 
 def device_enrolled(data, function_log):
-    """Device enrolled from SimpleMDM"""
-    create_manifest(data['device']['serial_number'],
-                    MANIFEST_FOLDER,
-                    MUNKI_REPO_BUCKET,
-                    function_log
-                    )
+    """Device enrolled in SimpleMDM"""
+    if MUNKI_REPO_BUCKET:
+        create_manifest(data['device']['serial_number'],
+                        MANIFEST_FOLDER,
+                        MUNKI_REPO_BUCKET,
+                        function_log
+                        )
+
+    if API_KEY:
+        device_info = get_device_info(data['device']['id'],
+                                      API_KEY,
+                                      function_log
+                                      )
+        device_type = device_info['attributes']['model']
+        assign_group = None
+        if 'MacBook' in device_type:
+            assign_group = 'Laptops'
+        elif 'iMac' in device_type:
+            assign_group = 'Desktops'
+        elif 'iPhone' in device_type:
+            assign_group = 'iPhones'
+        if assign_group:
+            assign_device_group(data['device']['id'],
+                                assign_group,
+                                API_KEY,
+                                function_log
+                                )
 
 
 def device_unenrolled(data, function_log):
