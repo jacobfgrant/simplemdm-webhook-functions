@@ -44,12 +44,12 @@ s3 = boto3.client('s3', region_name='us-east-1')
 def get_device_info(device_id, api_key, function_log):
     """Get device info from SimpleMDM API"""
     action_log = {
-                "action": "get_device_info",
-                "info": {
+                  "action": "get_device_info",
+                  "info": {
                          "device_id": device_id
                          },
-                "result": None
-                }
+                  "result": None
+                  }
 
     device_info = requests.get(('https://a.simplemdm.com/api/v1/devices/' + device_id), auth = (api_key, ''))
     if device_info.status_code != 200:
@@ -199,12 +199,10 @@ def device_enrolled(data, function_log):
                     MUNKI_REPO_BUCKET,
                     function_log
                     )
-    return function_log
 
 
 def device_unenrolled(data, function_log):
     """Device unenrolled from SimpleMDM"""
-    return function_log
 
 
 
