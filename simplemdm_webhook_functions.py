@@ -15,22 +15,20 @@ from botocore.exceptions import ClientError
 
 # Set environmental variables
 
-API_KEY = None
-MANIFEST_FOLDER = 'manifests'
-MUNKI_REPO_BUCKET = None
-
-for var in [
-            API_KEY,
-            MANIFEST_FOLDER,
-            MUNKI_REPO_BUCKET
-            ]:
+def set_env_var(name, default):
+    """Set an environmental variable or use given default value"""
     try:
-        var = os.environ[str(var)]
+        var = os.environ[name]
     except KeyError as e:
         print("Warning: Environmental variable " + str(e) + " not defined.")
-        print("\t Using default value: " + str(var))
-        
-MANIFEST_FOLDER = MANIFEST_FOLDER.strip('/')
+        print("\t Using default value: " + str(default))
+        var = default
+    return var
+
+
+API_KEY = set_env_var('API_KEY', None)
+MANIFEST_FOLDER = set_env_var('MANIFEST_FOLDER', 'manifests').strip('/')
+MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET', None)
 
 
 
