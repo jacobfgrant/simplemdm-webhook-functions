@@ -8,7 +8,7 @@ import json
 # Functions
 
 def set_env_var(name, default):
-    """Set an environmental variable or use given default value"""
+    """Set an environmental variable or use given default value."""
     try:
         var = os.environ[name]
     except KeyError as e:
@@ -19,12 +19,12 @@ def set_env_var(name, default):
 
 
 def log_action(function_log, action_log):
-    """Updates a function log with an action's item log"""
+    """Update a function log with an action's item log."""
     function_log["eventLog"].append(action_log)
 
 
 def generate_api_response(response_code, function_log):
-    """Return formatted API response"""
+    """Return a properly formatted API response."""
     response = {
                 "isBase64Encoded": False,
                 "statusCode": response_code,

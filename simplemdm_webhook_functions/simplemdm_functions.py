@@ -13,7 +13,7 @@ from utils import log_action
 # Functions
 
 def get_device_info(device_id, api_key, function_log):
-    """Get device info from SimpleMDM API"""
+    """Get device info from SimpleMDM API."""
     action_log = {
                   "action": "get_device_info",
                   "info": {
@@ -37,7 +37,7 @@ def get_device_info(device_id, api_key, function_log):
 
 
 def assign_device_group(device_id, group_name, api_key, function_log):
-    """Assigns a device to a SimpleMDM device group"""
+    """Assign a device to a SimpleMDM device group."""
     action_log = {
                   "action": "assign_device_group",
                   "info": {

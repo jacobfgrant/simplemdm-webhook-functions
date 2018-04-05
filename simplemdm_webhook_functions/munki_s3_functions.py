@@ -17,7 +17,7 @@ s3 = boto3.client('s3', region_name='us-east-1')
 # Functions
 
 def generate_manifest_file(name, catalogs=['production'], included_manifests=['site_default']):
-    """Generate a manifest file"""
+    """Generate a munki manifest file."""
     manifest_info = {
                      "catalogs": catalogs,
                      "display_name":"",
@@ -34,7 +34,7 @@ def generate_manifest_file(name, catalogs=['production'], included_manifests=['s
 
 
 def create_manifest(name, folder, bucket, function_log):
-    """Create a munki manifest file and upload it to folder in S3"""
+    """Create a munki manifest file and upload it to a folder in S3."""
     action_log = {
                   "action": "create_manifest",
                   "info": {
@@ -64,7 +64,7 @@ def create_manifest(name, folder, bucket, function_log):
 
 
 def delete_manifest(name, folder, bucket, function_log):
-    """Delete a munki manifest file from S3"""
+    """Delete a munki manifest file from S3."""
     action_log = {
                   "action": "delete_manifest",
                   "info": {

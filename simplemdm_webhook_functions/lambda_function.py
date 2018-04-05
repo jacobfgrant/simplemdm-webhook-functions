@@ -1,4 +1,28 @@
-"""SimpleMDM Webhook Functions"""
+"""SimpleMDM Webhook Lambda Function
+
+AWS Lambda function for responding to SimpleMDM webhook events.
+The following events are currently available:
+
+- device.enrolled
+- device.unenrolled
+
+Addition information can be found at:
+https://simplemdm.com/docs/api/#webhooks
+
+
+The actions to be performed in response to the above events are included
+in the corresponding event function below.
+
+To further extend the response to a webhook event, import the desired
+functions include them in the event. Ideally, any new functions should
+use the log_action() function from utils.py to update the function log
+and new environmental variables should be set with the set_env_var()
+function.
+
+Author:  Jacob F. Grant
+Created: 03/30/18
+Updated: 04/05/18
+"""
 
 
 import os
@@ -11,15 +35,18 @@ from simplemdm_functions import *
 
 # Set environmental variables
 
-API_KEY = set_env_var('API_KEY', None)
+# Munki S3 functions env vars
 MANIFEST_FOLDER = set_env_var('MANIFEST_FOLDER', 'manifests').strip('/')
 MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET', None)
+
+# SimpleMDM functions env vars
+API_KEY = set_env_var('API_KEY', None)
 
 
 # Webhook Event Functions
 
 def device_enrolled(data, function_log):
-    """Device enrolled in SimpleMDM"""
+    """Device enrolled in SimpleMDM."""
     if MUNKI_REPO_BUCKET:
         create_manifest(data['device']['serial_number'],
                         MANIFEST_FOLDER,
@@ -49,14 +76,14 @@ def device_enrolled(data, function_log):
 
 
 def device_unenrolled(data, function_log):
-    """Device unenrolled from SimpleMDM"""
+    """Device unenrolled from SimpleMDM."""
 
 
 
 ## HANDLER FUNCTION ##
 
 def lambda_handler(event, context):
-    """Handler function for AWS Lambda"""
+    """Handler function for AWS Lambda."""
     # create log
     function_log = {
                     "requestInfo": {
