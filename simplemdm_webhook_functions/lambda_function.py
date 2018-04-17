@@ -31,6 +31,7 @@ import json
 from utils import *
 from munki_s3_functions import *
 from simplemdm_functions import *
+from slack_functions import *
 
 
 # Set environmental variables
@@ -41,6 +42,9 @@ MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET', None)
 
 # SimpleMDM functions env vars
 API_KEY = set_env_var('API_KEY', None)
+
+# Slack functions env vars
+SLACK_URL = set_env_var('SLACK_URL', None)
 
 
 # Webhook Event Functions
@@ -74,10 +78,24 @@ def device_enrolled(data, function_log):
                                 function_log
                                 )
 
+    if SLACK_URL:
+        send_slack_message(SLACK_URL,
+                           slack_webhook_message(data['device']['serial_number'],
+                                                 'enrolled', 
+                                                 function_log['requestInfo']['at']
+                                                 )
+                           )
+
 
 def device_unenrolled(data, function_log):
     """Device unenrolled from SimpleMDM."""
-
+    if SLACK_URL:
+        send_slack_message(SLACK_URL,
+                           slack_webhook_message(data['device']['serial_number'],
+                                                 'unenrolled', 
+                                                 function_log['requestInfo']['at']
+                                                 )
+                           )
 
 
 ## HANDLER FUNCTION ##
