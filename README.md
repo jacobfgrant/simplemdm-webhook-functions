@@ -11,13 +11,13 @@ By leveraging AWS API Gateway and Lambda and the SimpleMDM API, it is possible t
 
 ## Getting Started
 
-* Modify the contents of the webhook event functions in `lambda_function.py` to suit your organizations requirements. Add any additional functionality by adding modules and importing them into the main file.
+* Modify the contents of the webhook event functions in `lambda_function.py` to suit your organization's requirements. Implement any additional functionality by adding modules and importing them into the main file.
 
-* Upload a zip archive of the files in the simplemdm_webhook_functions directory as a function in AWS Lambda. Define any environmental variables your functions requires. (**Note**: In order to create/delete objects in S3, the IAM role you selected for your Lambda function requires S3 privileges for that bucket.)
+* Upload a zip archive of the files in the `simplemdm_webhook_functions/` directory as a function in AWS Lambda. Define any environmental variables your functions requires. (**Note**: In order to create/delete objects in S3, the IAM role you selected for your Lambda function requires S3 privileges for that bucket.)
 
 * Create an new API in API Gateway with a POST method using Lambda Proxy integration and the name of your Lambda function.
 
-* Point SimpleMDM webhooks to your API URL (SimpleMDM > Settings > API)
+* Point SimpleMDM webhooks to your API URL (SimpleMDM > Settings > API).
 
 **Note**: Please be aware that as configured above, there are *no restrictions* on who can access the API. While this allows for easy testing, it also allows third parties with the API URL access as well. Production environments should take steps to address this.
 
@@ -27,3 +27,19 @@ By leveraging AWS API Gateway and Lambda and the SimpleMDM API, it is possible t
 More information on SimpleMDM webhooks can be found here:
 
 https://simplemdm.com/docs/api/#webhooks
+
+##### Webhook Example
+
+```
+{  
+    "type":"device.enrolled",
+    "at":"2018-01-31T11:29:11.190+00:00",
+    "data":{  
+      "device":{  
+        "id":210952,
+        "udid":"F49CECA9-2445-40FC-981F-9089D3504EAE",
+        "serial_number":"123ABC456XYZ"
+      }
+    }
+  }
+```
