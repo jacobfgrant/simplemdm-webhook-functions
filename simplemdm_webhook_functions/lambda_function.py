@@ -70,7 +70,8 @@ def device_enrolled(data, function_log):
                            slack_webhook_message(data['device']['serial_number'],
                                                  'enrolled', 
                                                  function_log['requestInfo']['at']
-                                                 )
+                                                 ),
+                           function_log
                            )
 
 
@@ -81,7 +82,8 @@ def device_unenrolled(data, function_log):
                            slack_webhook_message(data['device']['serial_number'],
                                                  'unenrolled', 
                                                  function_log['requestInfo']['at']
-                                                 )
+                                                 ),
+                           function_log
                            )
 
 

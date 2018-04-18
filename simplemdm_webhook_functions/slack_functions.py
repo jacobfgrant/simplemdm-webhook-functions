@@ -2,6 +2,8 @@
 
 
 import json
+import re
+from datetime import datetime
 try:
     import requests
 except ModuleNotFoundError:
@@ -19,13 +21,16 @@ SLACK_URL = set_env_var('SLACK_URL', None)
 
 def slack_webhook_message(serial_number, webhook_event, event_time):
     """Create a formatted Slack message."""
+    event_time = re.sub(r'([\+|\-]{1}[0-9]{2})\:([0-9]{2})', r'\g<1>\g<2>', event_time)
+    event_time = datetime.strptime(event_time, '%Y-%m-%dT%I:%M:%S.%f%z')
+    event_time = event_time.strftime('%A, %B %d, %Y at %H:%M %Z')
     slack_message = {
-                     'text': 'SimpleMDM: '
+                     'text': 'SimpleMDM: ' +
                              'Device ' +
                              serial_number +
-                             ' has ' +
+                             ' ' +
                              webhook_event +
-                             ' at ' +
+                             ' on ' +
                              event_time +
                              '.'
                      }
@@ -34,7 +39,7 @@ def slack_webhook_message(serial_number, webhook_event, event_time):
 
 
 
-def send_slack_message(slack_url, slack_message):
+def send_slack_message(slack_url, slack_message, function_log):
     """Send a message to Slack."""
     action_log = {
                   "action": "send_slack_message",
