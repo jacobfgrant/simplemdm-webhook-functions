@@ -6,7 +6,13 @@ import plistlib
 import boto3
 from botocore.exceptions import ClientError
 
-from utils import log_action
+from utils import *
+
+
+# Environmental Variables
+
+MANIFEST_FOLDER = set_env_var('MANIFEST_FOLDER', 'manifests').strip('/')
+MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET', None)
 
 
 # Create client objects

@@ -21,7 +21,7 @@ function.
 
 Author:  Jacob F. Grant
 Created: 03/30/18
-Updated: 04/05/18
+Updated: 04/18/18
 """
 
 
@@ -32,19 +32,6 @@ from utils import *
 from munki_s3_functions import *
 from simplemdm_functions import *
 from slack_functions import *
-
-
-# Set environmental variables
-
-# Munki S3 functions env vars
-MANIFEST_FOLDER = set_env_var('MANIFEST_FOLDER', 'manifests').strip('/')
-MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET', None)
-
-# SimpleMDM functions env vars
-API_KEY = set_env_var('API_KEY', None)
-
-# Slack functions env vars
-SLACK_URL = set_env_var('SLACK_URL', None)
 
 
 # Webhook Event Functions

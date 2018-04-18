@@ -7,7 +7,12 @@ try:
 except ModuleNotFoundError:
     from botocore.vendored import requests
 
-from utils import log_action
+from utils import *
+
+
+# Environmental Variables
+
+SLACK_URL = set_env_var('SLACK_URL', None)
 
 
 # Functions
