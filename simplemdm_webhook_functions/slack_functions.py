@@ -37,27 +37,30 @@ def slack_webhook_message(serial_number, webhook_event, event_time):
     return slack_message
 
 
-
-
 def send_slack_message(slack_url, slack_message, function_log):
     """Send a message to Slack."""
-    action_log = {
-                  "action": "send_slack_message",
-                  "info": {
-                           "slack_url": slack_url,
-                           "slack_message": slack_message
-                           },
-                  "result": None
-                  }
+    action_log = ActionLog(
+        "send_slack_message",
+        {
+            "slack_url": slack_url,
+            "slack_message": slack_message
+        }
+    )
 
     response = requests.post(
-                             slack_url,
-                             json.dumps(slack_message),
-                             headers = {'Content-Type': 'application/json'}
-                             )
+        slack_url,
+        json.dumps(slack_message),
+        headers = {'Content-Type': 'application/json'}
+    )
+
     if response.status_code != 200:
-        action_log['result'] = "Failed"
+        action_log.set_status("failure")
     else:
-        action_log['result'] = "Success"
-    
-    log_action(function_log, action_log)
+        action_log.set_status("success")
+
+    function_log.log_action(action_log.output())
+
+
+
+if __name__ == "__main__":
+    pass

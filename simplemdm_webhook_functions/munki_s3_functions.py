@@ -41,32 +41,39 @@ def generate_manifest_file(name, catalogs=['production'], included_manifests=['s
 
 def create_manifest(name, folder, bucket, function_log):
     """Create a munki manifest file and upload it to a folder in S3."""
-    action_log = {
-                  "action": "create_manifest",
-                  "info": {
-                           "name": os.path.join(folder, name),
-                           "bucket": bucket,
-                           "content": None
-                           },
-                  "result": None
-                  }
+    action_log = ActionLog(
+        "create_manifest",
+        {
+            "name": os.path.join(folder, name),
+            "bucket": bucket,
+            "content": None
+        }
+    )
 
     # check if manifest exists
     try:
         s3.head_object(Bucket=bucket, Key=os.path.join(folder, name))
-        action_log['result'] = 'AlreadyExists'
+        action_log.set_status("failure", "AlreadyExists")
     except ClientError as e:
         if e.response['Error']['Code'] == '404':
-            manifest_file, action_log['info']['content'] = generate_manifest_file(name)
+            manifest_file, manfiest_info = generate_manifest_file(name)
+
             try:
                 s3.upload_file(manifest_file, bucket, os.path.join(folder, name))
-                action_log['result'] = 'Success'
+                action_log.set_status("success", {"manifest": manfiest_info})
             except ClientError as e:
-                action_log['result'] = e
-        else:
-            action_log['result'] = e
+                action_log.set_status(
+                    "failure",
+                    {
+                        "error": e,
+                        "manifest": manfiest_info
+                    }
+                )
 
-    log_action(function_log, action_log)
+        else:
+            action_log.set_status("failure", {"error": e})
+
+    function_log.log_action(action_log.output())
 
 
 def delete_manifest(name, folder, bucket, function_log):
@@ -79,11 +86,23 @@ def delete_manifest(name, folder, bucket, function_log):
                            },
                   "result": None
                   }
+    action_log = ActionLog(
+        "delete_manifest",
+        {
+            "name": os.path.join(folder, name),
+            "bucket": bucket
+        }
+    )
 
     try:
         s3.delete_object(Bucket=bucket, Key=os.path.join(folder, name))
-        action_log['result'] = "Success"
+        action_log.set_status("success")
     except ClientError as e:
-        action_log['result'] = e.response['Error']['Code']
+        action_log.set_status("failure", {"error": e})
     
-    log_action(function_log, action_log)
+    function_log.log_action(action_log.output())
+
+
+
+if __name__ == "__main__":
+    pass
