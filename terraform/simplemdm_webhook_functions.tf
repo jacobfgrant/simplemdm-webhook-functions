@@ -1,3 +1,5 @@
+##### SimpleMDM Webhook Functions ######
+
 ### Configure variables
 variable "aws_access_key" {
   type        = "string"
@@ -15,19 +17,43 @@ variable "aws_region" {
   default     = "us-west-1"
 }
 
-variable "munki_repo_bucket_name" {
-  type        = "string"
-  description = "S3 bucket for backups"
-}
-
 variable "zip_file_path" {
   type        = "string"
-  description = "Path to .zip file"
-  default     = "route53_lambda_backup.zip"
+  description = "Path to .zip file containing the Lambda function"
+}
+
+variable "log_bucket_name" {
+  type        = "string"
+  description = "S3 bucket for Lambda function logs"
+}
+
+variable "munki_repo_bucket_name" {
+  type        = "string"
+  description = "Munki repo S3 bucket name"
+  default     = ""
+}
+
+variable "munki_repo_bucket_region" {
+  type        = "string"
+  description = "Munki repo S3 bucket region"
+  default     = ""
+}
+
+variable "simplemdm_api_key" {
+  type        = "string"
+  description = "API key for SimpleMDM"
+  default     = ""
+}
+
+variable "slack_url" {
+  type        = "string"
+  description = "Slack message URL"
+  default     = ""
 }
 
 
-# Configure the AWS Provider
+### Configure the AWS Provider
+
 provider "aws" {
   access_key = "${var.aws_access_key}"
   secret_key = "${var.aws_secret_key}"
@@ -35,9 +61,12 @@ provider "aws" {
 }
 
 
-# S3 Bucket
-resource "aws_s3_bucket" "route53_backup_s3_bucket" {
-  bucket        = "${var.munki_repo_bucket_name}"
+### Configure infrastructure
+
+
+# Log S3 Bucket
+resource "aws_s3_bucket" "log_s3_bucket" {
+  bucket        = "${var.log_bucket_name}"
   acl           = "private"
   force_destroy = false
 }
@@ -45,7 +74,7 @@ resource "aws_s3_bucket" "route53_backup_s3_bucket" {
 
 # Lambda Function
 resource "aws_lambda_function" "simplemdm_webhooks_lambda_function" {
-  function_name = "SimpleMDM-Webooks"
+  function_name = "SimpleMDM-Webhooks"
   description   = "Function for responding to SimpleMDM webhooks."
   filename      = "${var.zip_file_path}"
   role          = "${aws_iam_role.simplemdm_webhooks_iam_role.arn}"
@@ -55,8 +84,11 @@ resource "aws_lambda_function" "simplemdm_webhooks_lambda_function" {
 
   environment {
     variables = {
-      s3_bucket_name   = "${var.munki_repo_bucket_name}",
-      s3_bucket_region = "${var.aws_region}"
+      LOG_BUCKET               = "${var.log_bucket_name}",
+      MUNKI_REPO_BUCKET        = "${var.munki_repo_bucket_name}",
+      MUNKI_REPO_BUCKET_REGION = "${var.munki_repo_bucket_region}"
+      SIMPLEMDM_API_KEY        = "${var.simplemdm_api_key}"
+      SLACK_URL                = "${var.slack_url}"
     }
   }
 }
@@ -85,13 +117,6 @@ EOF
 }
 
 
-# Route 53 Read IAM Policy
-resource "aws_iam_role_policy_attachment" "attach_route53_read_only_policy" {
-  role       = "${aws_iam_role.simplemdm_webhooks_iam_role.id}"
-  policy_arn = "arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess"
-}
-
-
 # S3 Write IAM Policy
 resource "aws_iam_role_policy" "s3_write_role_policy" {
   name   = "S3WritePolicy"
@@ -105,11 +130,12 @@ resource "aws_iam_role_policy" "s3_write_role_policy" {
             "Sid": "VisualEditor0",
             "Effect": "Allow",
             "Action": [
-                "s3:CreateBucket",
                 "s3:PutObject",
+                "s3:GetObject",
                 "s3:ListBucket"
             ],
             "Resource": [
+                "arn:aws:s3:::${var.log_bucket_name}",
                 "arn:aws:s3:::${var.munki_repo_bucket_name}",
                 "arn:aws:s3:::*/*"
             ]
@@ -118,7 +144,6 @@ resource "aws_iam_role_policy" "s3_write_role_policy" {
 }
 EOF
 }
-
 
 
 # API Gateway
@@ -135,7 +160,7 @@ resource "aws_api_gateway_rest_api" "simplemdm_webhook_api_gateway" {
 # API Gateway Deployment
 resource "aws_api_gateway_deployment" "prod_deployment" {
   rest_api_id = "${aws_api_gateway_rest_api.simplemdm_webhook_api_gateway.id}"
-  stage_name  = "prod"
+  stage_name  = "v1"
   depends_on  = [
     "aws_api_gateway_integration.api_simplemdm_resource_lambda_integration"
   ]
