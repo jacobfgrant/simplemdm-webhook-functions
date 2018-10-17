@@ -21,7 +21,7 @@ function.
 
 Author:  Jacob F. Grant
 Created: 03/30/18
-Updated: 10/11/18
+Updated: 10/16/18
 """
 
 
@@ -43,18 +43,19 @@ LOG_BUCKET = set_env_var('LOG_BUCKET', None)
 
 def device_enrolled(data, function_log):
     """Device enrolled in SimpleMDM."""
-    if MUNKI_REPO_BUCKET:
+    if MUNKI_REPO_BUCKET and MUNKI_REPO_BUCKET_REGION:
         create_manifest(
             data['device']['serial_number'],
             MANIFEST_FOLDER,
             MUNKI_REPO_BUCKET,
+            MUNKI_REPO_BUCKET_REGION,
             function_log
         )
 
-    if API_KEY:
+    if SIMPLEMDM_API_KEY:
         device_info = get_device_info(
             data['device']['id'],
-            API_KEY,
+            SIMPLEMDM_API_KEY,
             function_log
         )
         device_type = device_info['attributes']['model']
@@ -69,7 +70,7 @@ def device_enrolled(data, function_log):
             assign_device_group(
                 data['device']['id'],
                 assign_group,
-                API_KEY,
+                SIMPLEMDM_API_KEY,
                 function_log
             )
 

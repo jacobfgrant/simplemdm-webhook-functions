@@ -13,11 +13,7 @@ from utils import *
 
 MANIFEST_FOLDER = set_env_var('MANIFEST_FOLDER', 'manifests').strip('/')
 MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET', None)
-
-
-# Create client objects
-
-s3 = boto3.client('s3', region_name='us-east-1')
+MUNKI_REPO_BUCKET_REGION = set_env_var('MUNKI_REPO_BUCKET_REGION', None)
 
 
 # Functions
@@ -39,7 +35,7 @@ def generate_manifest_file(name, catalogs=['production'], included_manifests=['s
     return manifest_file, manifest_info
 
 
-def create_manifest(name, folder, bucket, function_log):
+def create_manifest(name, folder, bucket, region, function_log):
     """Create a munki manifest file and upload it to a folder in S3."""
     action_log = ActionLog(
         "create_manifest",
@@ -50,28 +46,30 @@ def create_manifest(name, folder, bucket, function_log):
         }
     )
 
+    munki_s3 = boto3.client('s3', region_name=region)
+
     # check if manifest exists
     try:
-        s3.head_object(Bucket=bucket, Key=os.path.join(folder, name))
+        munki_s3.head_object(Bucket=bucket, Key=os.path.join(folder, name))
         action_log.set_status("failure", "AlreadyExists")
     except ClientError as e:
         if e.response['Error']['Code'] == '404':
             manifest_file, manfiest_info = generate_manifest_file(name)
 
             try:
-                s3.upload_file(manifest_file, bucket, os.path.join(folder, name))
+                munki_s3.upload_file(manifest_file, bucket, os.path.join(folder, name))
                 action_log.set_status("success", {"manifest": manfiest_info})
             except ClientError as e:
                 action_log.set_status(
                     "failure",
                     {
-                        "error": e,
+                        "error": str(e),
                         "manifest": manfiest_info
                     }
                 )
 
         else:
-            action_log.set_status("failure", {"error": e})
+            action_log.set_status("failure", {"error": str(e)})
 
     function_log.log_action(action_log.output())
 
@@ -94,11 +92,13 @@ def delete_manifest(name, folder, bucket, function_log):
         }
     )
 
+    munki_s3 = boto3.client('s3', region_name=region)
+
     try:
-        s3.delete_object(Bucket=bucket, Key=os.path.join(folder, name))
+        munki_s3.delete_object(Bucket=bucket, Key=os.path.join(folder, name))
         action_log.set_status("success")
     except ClientError as e:
-        action_log.set_status("failure", {"error": e})
+        action_log.set_status("failure", {"error": str(e)})
     
     function_log.log_action(action_log.output())
 
