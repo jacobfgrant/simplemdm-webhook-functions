@@ -37,6 +37,7 @@ from slack_functions import *
 # Environmental Variables
 
 LOG_BUCKET = set_env_var('LOG_BUCKET')
+MUNKI_MANIFEST_FOLDER = set_env_var('MUNKI_MANIFEST_FOLDER', 'manifests').strip('')
 MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET')
 MUNKI_REPO_BUCKET_REGION = set_env_var('MUNKI_REPO_BUCKET_REGION')
 SIMPLEMDM_API_KEY = set_env_var('SIMPLEMDM_API_KEY')
@@ -50,7 +51,7 @@ def device_enrolled(data, function_log):
     if MUNKI_REPO_BUCKET and MUNKI_REPO_BUCKET_REGION:
         create_manifest(
             data['device']['serial_number'],
-            MANIFEST_FOLDER,
+            MUNKI_MANIFEST_FOLDER,
             MUNKI_REPO_BUCKET,
             MUNKI_REPO_BUCKET_REGION,
             function_log
