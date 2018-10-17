@@ -12,11 +12,6 @@ except ModuleNotFoundError:
 from utils import *
 
 
-# Environmental Variables
-
-SLACK_URL = set_env_var('SLACK_URL', None)
-
-
 # Functions
 
 def slack_webhook_message(serial_number, webhook_event, event_time):

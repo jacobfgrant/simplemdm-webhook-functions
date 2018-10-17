@@ -10,11 +10,6 @@ except ModuleNotFoundError:
 from utils import *
 
 
-# Environmental Variables
-
-SIMPLEMDM_API_KEY = set_env_var('SIMPLEMDM_API_KEY', None)
-
-
 # Functions
 
 def get_device_info(device_id, api_key, function_log):

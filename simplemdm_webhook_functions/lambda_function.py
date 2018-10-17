@@ -36,7 +36,11 @@ from slack_functions import *
 
 # Environmental Variables
 
-LOG_BUCKET = set_env_var('LOG_BUCKET', None)
+LOG_BUCKET = set_env_var('LOG_BUCKET')
+MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET')
+MUNKI_REPO_BUCKET_REGION = set_env_var('MUNKI_REPO_BUCKET_REGION')
+SIMPLEMDM_API_KEY = set_env_var('SIMPLEMDM_API_KEY')
+SLACK_URL = set_env_var('SLACK_URL')
 
 
 # Webhook Event Functions

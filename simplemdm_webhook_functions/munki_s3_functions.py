@@ -9,13 +9,6 @@ from botocore.exceptions import ClientError
 from utils import *
 
 
-# Environmental Variables
-
-MANIFEST_FOLDER = set_env_var('MANIFEST_FOLDER', 'manifests').strip('/')
-MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET', None)
-MUNKI_REPO_BUCKET_REGION = set_env_var('MUNKI_REPO_BUCKET_REGION', None)
-
-
 # Functions
 
 def generate_manifest_file(name, catalogs=['production'], included_manifests=['site_default']):

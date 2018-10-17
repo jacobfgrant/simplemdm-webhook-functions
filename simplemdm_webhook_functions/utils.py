@@ -11,7 +11,7 @@ from botocore.exceptions import ClientError
 
 # Functions
 
-def set_env_var(name, default):
+def set_env_var(name, default=None):
     """Set an environmental variable or use given default value."""
     try:
         var = os.environ[name]
