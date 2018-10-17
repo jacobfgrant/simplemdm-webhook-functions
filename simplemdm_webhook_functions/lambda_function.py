@@ -37,6 +37,7 @@ from slack_functions import *
 # Environmental Variables
 
 LOG_BUCKET = set_env_var('LOG_BUCKET')
+MUNKI_CATALOG = set_env_var('MUNKI_CATALOG', 'production')
 MUNKI_MANIFEST_FOLDER = set_env_var('MUNKI_MANIFEST_FOLDER', 'manifests').strip('')
 MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET')
 MUNKI_REPO_BUCKET_REGION = set_env_var('MUNKI_REPO_BUCKET_REGION')
@@ -48,14 +49,8 @@ SLACK_URL = set_env_var('SLACK_URL')
 
 def device_enrolled(data, function_log):
     """Device enrolled in SimpleMDM."""
-    if MUNKI_REPO_BUCKET and MUNKI_REPO_BUCKET_REGION:
-        create_manifest(
-            data['device']['serial_number'],
-            MUNKI_MANIFEST_FOLDER,
-            MUNKI_REPO_BUCKET,
-            MUNKI_REPO_BUCKET_REGION,
-            function_log
-        )
+    manifest = MunkiManifest(data['device']['serial_number'])
+    manifest.add_catalog(MUNKI_CATALOG)
 
     if SIMPLEMDM_API_KEY:
         device_info = get_device_info(
@@ -63,19 +58,36 @@ def device_enrolled(data, function_log):
             SIMPLEMDM_API_KEY,
             function_log
         )
+        manifest.set_display_name(device_info['attributes']['name'])
         device_type = device_info['attributes']['model']
         assign_group = None
         if 'MacBook' in device_type:
             assign_group = 'Laptops'
-        elif 'iMac' in device_type:
+            included_manifest = 'Laptops'
+        elif 'Mac' in device_type:
             assign_group = 'Desktops'
+            included_manifest = 'Desktops'
         elif 'iPhone' in device_type:
             assign_group = 'iPhones'
+            included_manifest = None
         if assign_group:
             assign_device_group(
                 data['device']['id'],
                 assign_group,
                 SIMPLEMDM_API_KEY,
+                function_log
+            )
+    else:
+        included_manifest = 'site_default'
+
+    if MUNKI_REPO_BUCKET and MUNKI_REPO_BUCKET_REGION:
+        if included_manifest:
+            manifest.add_included_manifest(included_manifest)
+            create_manifest(
+                manifest,
+                MUNKI_MANIFEST_FOLDER,
+                MUNKI_REPO_BUCKET,
+                MUNKI_REPO_BUCKET_REGION,
                 function_log
             )
 
