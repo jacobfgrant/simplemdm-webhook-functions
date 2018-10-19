@@ -27,6 +27,12 @@ variable "log_bucket_name" {
   description = "S3 bucket for Lambda function logs"
 }
 
+variable "munki_catalog" {
+  type        = "string"
+  description = "Munki catalog"
+  default     = "production"
+}
+
 variable "munki_repo_manifests_folder" {
   type        = "string"
   description = "Munki repo manifests folder"
@@ -91,6 +97,7 @@ resource "aws_lambda_function" "simplemdm_webhooks_lambda_function" {
   environment {
     variables = {
       LOG_BUCKET               = "${var.log_bucket_name}",
+      MUNKI_CATALOG            = "${var.munki_catalog}",
       MUNKI_MANIFEST_FOLDER    = "${var.munki_repo_manifests_folder}",
       MUNKI_REPO_BUCKET        = "${var.munki_repo_bucket_name}",
       MUNKI_REPO_BUCKET_REGION = "${var.munki_repo_bucket_region}"
