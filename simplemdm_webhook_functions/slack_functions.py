@@ -21,9 +21,9 @@ def slack_webhook_message(serial_number, webhook_event, event_time):
     event_time = event_time.strftime('%A, %B %d, %Y at %H:%M %Z')
     slack_message = {
         'text': (
-            "SimpleMDM: Device " +
+            "SimpleMDM: Device `" +
             serial_number +
-            " " +
+            "` " +
             webhook_event +
             " on " +
             event_time +
@@ -51,7 +51,7 @@ def send_slack_message(slack_url, slack_message, function_log):
         )
 
         if response.status_code != 200:
-            action_log.set_status("failure")
+            action_log.set_status("failure", {"code": response.status_code})
         else:
             action_log.set_status("success")
 

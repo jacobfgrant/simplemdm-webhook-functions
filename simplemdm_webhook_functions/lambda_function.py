@@ -29,92 +29,23 @@ import os
 import json
 
 from utils import *
-from munki_s3_functions import *
-from simplemdm_functions import *
-from slack_functions import *
 
-
-# Environmental Variables
-
-LOG_BUCKET = set_env_var('LOG_BUCKET')
-MUNKI_CATALOG = set_env_var('MUNKI_CATALOG', 'production')
-MUNKI_MANIFEST_FOLDER = set_env_var('MUNKI_MANIFEST_FOLDER', 'manifests').strip('')
-MUNKI_REPO_BUCKET = set_env_var('MUNKI_REPO_BUCKET')
-MUNKI_REPO_BUCKET_REGION = set_env_var('MUNKI_REPO_BUCKET_REGION')
-SIMPLEMDM_API_KEY = set_env_var('SIMPLEMDM_API_KEY')
-SLACK_URL = set_env_var('SLACK_URL')
+from env_vars import LOG_BUCKET
 
 
 # Webhook Event Functions
 
-def device_enrolled(data, function_log):
-    """Device enrolled in SimpleMDM."""
-    manifest = MunkiManifest(data['device']['serial_number'])
-    manifest.add_catalog(MUNKI_CATALOG)
+# device_enrolled
+try:
+    from webhook_functions import device_enrolled
+except (ModuleNotFoundError, ImportError):
+    from default_webhook_functions import device_enrolled
 
-    if SIMPLEMDM_API_KEY:
-        device_info = get_device_info(
-            data['device']['id'],
-            SIMPLEMDM_API_KEY,
-            function_log
-        )
-        manifest.set_display_name(device_info['attributes']['name'])
-        device_type = device_info['attributes']['model']
-        assign_group = None
-        if 'MacBook' in device_type:
-            assign_group = 'Laptops'
-            included_manifest = 'Laptops'
-        elif 'Mac' in device_type:
-            assign_group = 'Desktops'
-            included_manifest = 'Desktops'
-        elif 'iPhone' in device_type:
-            assign_group = 'iPhones'
-            included_manifest = None
-        if assign_group:
-            assign_device_group(
-                data['device']['id'],
-                assign_group,
-                SIMPLEMDM_API_KEY,
-                function_log
-            )
-    else:
-        included_manifest = 'site_default'
-
-    if MUNKI_REPO_BUCKET and MUNKI_REPO_BUCKET_REGION:
-        if included_manifest:
-            manifest.add_included_manifest(included_manifest)
-            create_manifest(
-                manifest,
-                MUNKI_MANIFEST_FOLDER,
-                MUNKI_REPO_BUCKET,
-                MUNKI_REPO_BUCKET_REGION,
-                function_log
-            )
-
-    if SLACK_URL:
-        send_slack_message(
-            SLACK_URL,
-            slack_webhook_message(
-                data['device']['serial_number'],
-                'enrolled', 
-                function_log.at
-            ),
-            function_log
-        )
-
-
-def device_unenrolled(data, function_log):
-    """Device unenrolled from SimpleMDM."""
-    if SLACK_URL:
-        send_slack_message(
-            SLACK_URL,
-            slack_webhook_message(
-                data['device']['serial_number'],
-                'unenrolled', 
-                function_log.at
-            ),
-            function_log
-        )
+# device_unenrolled
+try:
+    from webhook_functions import device_unenrolled
+except (ModuleNotFoundError, ImportError):
+    from default_webhook_functions import device_unenrolled
 
 
 ## HANDLER FUNCTION ##

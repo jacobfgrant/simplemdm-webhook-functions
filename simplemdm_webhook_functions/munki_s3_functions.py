@@ -29,8 +29,8 @@ class MunkiManifest(object):
         self.catalogs.append(catalog)
 
 
-    def add_included_manifest(self, included_manifest):
-        self.included_manifest.append(included_manifest)
+    def add_included_manifest(self, manifest):
+        self.included_manifests.append(manifest)
 
 
     def output(self):
@@ -62,8 +62,7 @@ def upload_manifest(manifest, folder, bucket, region, function_log):
         "upload_manifest",
         {
             "name": os.path.join(folder, manifest.name),
-            "bucket": bucket,
-            "content": None
+            "bucket": bucket
         }
     )
 

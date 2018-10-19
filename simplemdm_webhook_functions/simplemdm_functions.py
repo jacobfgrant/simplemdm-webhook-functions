@@ -20,11 +20,12 @@ def get_device_info(device_id, api_key, function_log):
     )
 
     api_call = requests.get(
-        ('https://a.simplemdm.com/api/v1/devices/' + device_id),
+        ('https://a.simplemdm.com/api/v1/devices/' + str(device_id)),
         auth = (api_key, '')
     )
     
     if api_call.status_code != 200:
+        device_info = None
         action_log.set_status(
             "failure",
             {
@@ -34,10 +35,11 @@ def get_device_info(device_id, api_key, function_log):
             }
         )
     else:
-        action_log.set_result("success")
+        device_info = json.loads(api_call.text)['data']
+        action_log.set_status("success", {"device_info": device_info})
     
     function_log.log_action(action_log.output())
-    return api_call.json()['data']
+    return device_info
 
 
 def assign_device_group(device_id, group_name, api_key, function_log):
@@ -56,12 +58,12 @@ def assign_device_group(device_id, group_name, api_key, function_log):
     )
 
     if api_call.status_code == 200:
-        data = api_call.json()['data']
+        data = json.loads(api_call.text)['data']
 
         for group in data:
             if group['attributes']['name'] == group_name:
                 group_id = group['id']
-                api_url = ('https://a.simplemdm.com/api/v1/device_groups/' + group_id + '/devices/' + device_id)
+                api_url = ('https://a.simplemdm.com/api/v1/device_groups/' + str(group_id) + '/devices/' + str(device_id))
                 assign_device_call = requests.post(api_url, auth = (api_key, ''))
                 
                 if assign_device_call.status_code == 204:
