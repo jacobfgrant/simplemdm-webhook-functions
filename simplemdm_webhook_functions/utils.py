@@ -1,4 +1,14 @@
-"""General utilities and functions"""
+"""
+General Utilities
+
+General utilities, functions, and classes used throughout the SimpleMDM
+webhook Lambda function.
+
+
+Author:  Jacob F. Grant
+Created: 04/05/18
+Updated: 10/19/18
+"""
 
 
 import os

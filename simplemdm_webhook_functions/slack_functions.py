@@ -1,4 +1,13 @@
-"""Slack Functions"""
+"""
+Slack Functions
+
+Functions for sending a formatted message to a Slack channel URL.
+
+
+Author:  Jacob F. Grant
+Created: 04/17/18
+Updated: 10/19/18
+"""
 
 
 import json

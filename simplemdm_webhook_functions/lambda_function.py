@@ -1,4 +1,5 @@
-"""SimpleMDM Webhook Lambda Function
+"""
+SimpleMDM Webhook Lambda Function
 
 AWS Lambda function for responding to SimpleMDM webhook events.
 The following events are currently available:
@@ -11,22 +12,24 @@ https://simplemdm.com/docs/api/#webhooks
 
 
 The actions to be performed in response to the above events are included
-in the corresponding event function below.
+in the corresponding event functions 'default_webhook_functions.py' module.
 
-To further extend the response to a webhook event, import the desired
-functions include them in the event. Ideally, any new functions should
-use the FunctionLog and ActionLog objects from utils.py to log their
-actions and new environmental variables should be set with the set_env_var()
-function.
+To modify or extend the response to a webhook event, add a modified
+version of the webhook event function to a 'webhook_functions.py' file
+and import any necessary modules--including customized ones--and
+environmental variables.
+
+Ideally, any new functions should use the FunctionLog and ActionLog
+objects from utils.py to log their actions and new environmental
+variables should be set in 'additional_env_vars.py' using the
+set_env_var() function.
+
 
 Author:  Jacob F. Grant
 Created: 03/30/18
-Updated: 10/16/18
+Updated: 10/19/18
 """
 
-
-import os
-import json
 
 from utils import *
 

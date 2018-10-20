@@ -1,4 +1,18 @@
-"""Default Webhook Functions"""
+"""
+Default Webhook Functions
+
+The (default) functions for responding to specific SimpleMDM webhook
+events.
+
+To override any of these functions, add your version to a
+'webhook_functions.py' file in the same directory. Be sure to import the
+necessary modules and environmental files.
+
+
+Author:  Jacob F. Grant
+Created: 10/19/18
+Updated: 10/16/18
+"""
 
 
 from utils import *

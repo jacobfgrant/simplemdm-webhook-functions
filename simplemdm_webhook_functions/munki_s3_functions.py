@@ -1,4 +1,14 @@
-"""Munki S3 Functions"""
+"""
+Munki S3 Functions
+
+Functions and classes for creating and uploading a munki manifest file
+to an S3 bucket.
+
+
+Author:  Jacob F. Grant
+Created: 04/05/18
+Updated: 10/19/18
+"""
 
 
 import os

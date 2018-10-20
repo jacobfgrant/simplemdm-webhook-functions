@@ -1,4 +1,16 @@
-"""Environmental Variables"""
+"""
+Environmental Variables
+
+The environmental variables for the SimpleMDM webhook Lambda function.
+
+To include additonal environmental variables, set them here using the
+set_env_var() function or in an 'additional_env_vars.py' file.
+
+
+Author:  Jacob F. Grant
+Created: 10/19/18
+Updated: 10/19/18
+"""
 
 
 from utils import set_env_var

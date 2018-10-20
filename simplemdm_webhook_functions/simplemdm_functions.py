@@ -1,4 +1,14 @@
-"""SimpleMDM Functions"""
+"""
+SimpleMDM Functions
+
+Functions for retrieving device data and assigning device groups in
+SimpleMDM using the SimpleMDM API.
+
+
+Author:  Jacob F. Grant
+Created: 04/05/18
+Updated: 10/19/18
+"""
 
 
 import json
